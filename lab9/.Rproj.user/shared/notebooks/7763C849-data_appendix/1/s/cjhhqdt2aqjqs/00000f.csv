@@ -1,0 +1,21 @@
+"0","library(dplyr)"
+"2","
+Dołączanie pakietu: ‘dplyr’
+
+"
+"2","Następujące obiekty zostały zakryte z ‘package:stats’:
+
+    filter, lag
+
+"
+"2","Następujące obiekty zostały zakryte z ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+"
+"2","Komunikat ostrzegawczy:
+"
+"2","pakiet ‘RMySQL’ został zbudowany w wersji R 4.3.2 
+"
+"0","library(ggplot2)"
+"0","library(readr)"
