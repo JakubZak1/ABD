@@ -1,0 +1,83 @@
+---
+title: "lab7"
+author: "jakub zak"
+format: html
+editor: visual
+---
+
+```{r}
+# Załaduj niezbędne biblioteki
+library(tidyr)
+library(dplyr)
+library(nycflights13)
+library(tidyverse)
+
+# Utwórz przykładowe dane
+set.seed(808) # zamiast ... wpisz sumaryczną liczbę liter z twojego imienia i nazwiska pomnżone przez 101
+produkty <- c("Produkt_A", "Produkt_B", "Produkt_C")
+kwartały <- c("Q1", "Q2", "Q3", "Q4")
+
+sales_data <- data.frame(
+  Produkt = rep(produkty, each = length(kwartały)),
+  Q1 = sample(100:500, 12),
+  Q2 = sample(100:500, 12),
+  Q3 = sample(100:500, 12),
+  Q4 = sample(100:500, 12)
+)
+
+set.seed(808) # zamiast ... wpisz sumaryczną liczbę liter z twojego imienia i nazwiska pomnżone przez 101
+produkty <- c("Produkt_A", "Produkt_B", "Produkt_C")
+sklepy <- c("Sklep_X", "Sklep_Y", "Sklep_Z")
+miesiace <- c("Styczeń", "Luty", "Marzec")
+
+sales_data_advanced <- data.frame(
+  Produkt = rep(produkty, each = length(sklepy) * length(miesiace)),
+  Sklep = rep(sklepy, times = length(produkty) * length(miesiace)),
+  Miesiac = rep(miesiace, each = length(produkty) * length(sklepy)),
+  Sprzedaz = sample(100:500, 27),
+  Koszty = sample(30:200, 27),
+  Zysk = NA
+)
+sales_data_advanced$Zysk <- sales_data_advanced$Sprzedaz - sales_data_advanced$Koszty
+```
+
+## Zadanie 1
+
+```{r}
+sales_data |> pivot_longer(cols = starts_with("Q"), names_to = "Kwartał", values_to = "Sprzedaż") |> group_by(Produkt, Kwartał) |> summarize(Sprzedaż = sum(Sprzedaż),.groups = 'drop') |> pivot_wider(names_from = Kwartał, values_from = Sprzedaż)
+```
+
+## Zadanie 2
+
+```{r}
+sales_data_advanced |> filter(Zysk > 0) |> arrange(desc(Zysk)) |> arrange(Produkt) |> mutate(Marza_Procentowa = (Sprzedaz - Koszty) / Sprzedaz * 100) |> group_by(Sklep, Produkt, Miesiac) |> summarize(Srednia_Sprzedaz = mean(Sprzedaz), Srednie_Koszty = mean(Koszty), Sredni_Zysk = mean(Zysk), .groups = "drop") |> mutate(Koszty_na_Sprzedaz = Srednie_Koszty / Srednia_Sprzedaz * 100) |> group_by(Produkt) |> top_n(1 , wt = Koszty_na_Sprzedaz)
+```
+
+## Zadanie 3
+
+```{r}
+flights |> arrange(desc(arr_delay))
+# średnie opóźnienie przylotu każdego przewoźnika
+flights |> filter(is.na(arr_delay) == FALSE) |> group_by(carrier) |> summarize(Delay = mean(arr_delay)) |> arrange(desc(Delay))
+
+# średnie opóźnienie przylotu w zależności od lotniska docelowego
+flights |> filter(is.na(arr_delay) == FALSE) |> group_by(dest) |> summarize(Delay = mean(arr_delay)) |> arrange(desc(Delay))
+
+# średnie opóźnienia przylotu każdego przewoźnika do każdego lotniska docelowego
+flights |> filter(is.na(arr_delay) == FALSE) |> group_by(carrier, dest) |> summarize(Delay = mean(arr_delay), .groups = "drop") |> arrange(desc(Delay))
+
+# loty ułożone od największego średniego opóźnienia odlotu dla każdego lotniska wylotowego
+flights |> filter(is.na(dep_delay) == FALSE) |> group_by(origin, dest) |> summarize(Delay = mean(dep_delay), .groups = "drop") |> arrange(desc(Delay)) |> arrange(origin)
+```
+
+## Zadanie 4
+
+```{r}
+billboard = read_csv("billboard.csv")
+
+# wszystkie piosenki, które spadły z listy we wrześniu 2000
+billboard |> pivot_longer(cols = starts_with("x"), names_to = "week", values_to = "position") |> filter(is.na(position) == FALSE) |> group_by(artist.inverted, track, date.entered) |> summarize(number_of_weeks = n()) |> mutate(drop_date = date.entered + 7 * number_of_weeks)|> mutate(drop_year = format(as.Date(drop_date, format="%d/%m/%Y"),"%Y")) |> mutate(drop_month = format(as.Date(drop_date, format="%d/%m/%Y"),"%m")) |> filter(drop_year == "2000" & drop_month == "09")
+
+# piosenka utrzymująca się najdłużej na liście z każdego gatunku
+billboard |> pivot_longer(cols = starts_with("x"), names_to = "week", values_to = "position") |> filter(is.na(position) == FALSE) |> group_by(artist.inverted, track, genre) |> summarize(number_of_weeks = n()) |> group_by(genre) |> slice_max(order_by = number_of_weeks) |> arrange(desc(number_of_weeks))
+```

@@ -1,0 +1,108 @@
+---
+title: "Data Appendix"
+author: "Jakub Żak"
+format: html
+editor: visual
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+```
+
+```{r}
+data_df <- read.csv("beauty.csv")
+```
+
+```{r}
+data_tidy <- data_df %>%
+   rowwise() %>%
+  mutate(data_class = ifelse(
+    any(c_across(starts_with("class")) == 1),
+    as.integer(sub("^class", "", names(select(., starts_with("class")))[
+      c_across(starts_with("class")) == 1])),
+    NA_integer_)) %>%
+  select(-starts_with("class")) %>%
+  filter(!is.na(data_class)) %>%
+
+print(data_tidy)
+```
+
+## Opis zmiennych
+
+tenured - Zatrudnienie na stałe\
+profnumber\
+minority - Mniejszość\
+age - Wiek profesora\
+beautyf2upper - Ocena 10 do 1, 2. kobieta w wyższych klasach\
+beautyflowerdiv - Ocena 10 do 1, kobieta w niższych klasach\
+beautyfupperdiv - Ocena 10 do 1, kobieta w wyższych klasach\
+beautym2upper - Ocena 10 do 1, 2. mężczyzna w wyższych klasach\
+beautymlowerdiv - Ocena 10 do 1, mężczyzna w niższych klasach\
+beautymupperdiv - Ocena 10 do 1, mężczyzna w wyższych klasach\
+btystdave - Średnia z 6 skalaryzowanych ocen piękna\
+btystdf2u\
+btystdfl\
+btystdfu\
+btystdm2u\
+btystdml\
+btystdmu\
+courseevaluation - Średnia ocena kursu\
+didevaluation - Liczba wypełniających ankiety\
+female - Kobieta = 1\
+formal - Zdjęcie w krawacie - marynarce/bluzce\
+fulldept - Całe wydziały miały zdjęcia na stronie internetowej\
+lower - Kurs na niższych semestrach\
+multipleclass - Równe 1, jeśli \>1 profesor uczy w wielu klasach\
+nonenglish - Profesor mówiący w ojczystym języku innym niż angielski\
+onecredit - Równe 1, jeśli kurs jednokredytowy\
+percentevaluation - Procent oceniających\
+profevaluation - Średnia ocena profesora\
+students - Liczba studentów zapisanych na kurs\
+tenuretrack - Na ścieżce do uzyskania stałego zatrudnienia = 1\
+blkandwhite\
+btystdva
+
+```{r}
+tenured_percent = sum(data_tidy$tenured == 1) / length(data_tidy$tenured) * 100
+print(paste0("Zatrudnionych na stałe jest ", tenured_percent, "% a niezatrudnionych na stałe jest ", (100 - tenured_percent), "%"))
+```
+
+```{r}
+minority_percent = sum(data_tidy$minority == 1) / length(data_tidy$minority) * 100
+print(paste0("Mniejszości etnicznych jest ", minority_percent, "% a pozostałych osób jest ", (100 - minority_percent), "%"))
+```
+
+```{r}
+ggplot(data = data_tidy, aes(x = age)) +
+  geom_histogram(binwidth = 3, color = "blue", fill = "lightblue", alpha = 0.7) +
+  labs(title = "Histogram wieku", x = "Wiek", y = "Ilość")
+```
+
+```{r}
+female_percent = sum(data_tidy$female == 1) / length(data_tidy$female) * 100
+print(paste0("Kobiet jest ", female_percent, "% a mężczyzn jest ", (100 - female_percent), "%"))
+```
+
+```{r}
+formal_percent = sum(data_tidy$formal == 1) / length(data_tidy$formal) * 100
+print(paste0("Osób ze zdjęciem w stroju formalnym jest ", formal_percent, "% a nieformalnym ", (100 - formal_percent), "%"))
+```
+
+```{r}
+nonenglish_percent = sum(data_tidy$nonenglish == 1) / length(data_tidy$nonenglish) * 100
+print(paste0("Profesorów mówiących w innym języku niż angielski jest ", nonenglish_percent, "% a pozostałych ", (100 - nonenglish_percent), "%"))
+```
+
+```{r}
+ggplot(data = data_tidy, aes(x = profevaluation)) +
+  geom_histogram(binwidth = 0.3, color = "blue", fill = "lightblue", alpha = 0.7) +
+  labs(title = "Ilość danych ocen profesorów", x = "Ocena", y = "Ilość")
+```
+
+```{r}
+ggplot(data = data_tidy, aes(x = students)) +
+  geom_histogram(binwidth = 20, color = "blue", fill = "lightblue", alpha = 0.7) +
+  labs(title = "Rozkład wielkości grup", x = "Ilość studentów w grupie", y = "Ilość grup z tą ilością studentów")
+```

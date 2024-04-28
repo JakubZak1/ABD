@@ -1,0 +1,110 @@
+---
+title: "lab6 aibd"
+author: "normalnie ja bezproblemowo"
+format: html
+editor: visual
+---
+
+```{r}
+#| echo: false
+#| output: false
+library(tidyverse)
+library(nycflights13)
+```
+
+### Zadanie 1
+
+year\<int\>, month\<int\>, day\<int\> - data wylotu,
+
+dep_time\<int\>, arr_time\<int\> - czas rzeczywistego wylotu i przylotu w formacie HHMM lub HMM, w czasie lokalnym
+
+sched_dep_time\<int\>, sched_arr_time\<int\> zaplanowane czasy wylotu i przylotu w formacie HHMM lub HMM, w czasie lokalnym,
+
+dep_delay\<double\>, arr_delay\<double\> opóźnienia odlotów i przylotów w minutach, ujemne opóźnienia oznaczają za wczesne odloty i przyloty,
+
+carrier\<character\> - dwuliterowy skrót przewoźnika,
+
+flight\<int\> - numer lotu,
+
+tailnum\<character\> - "numer rejestracyjny" samolotu,
+
+origin\<character\>, dest\<character\> - miejsce wylotu i miejsce przylotu,
+
+air_time\<double\> - długość lotu w minutach,
+
+distance\<double\> - odległość między lotniskami w milach,
+
+hour\<double\>, minute\<double\> - czas planowanego wylotu rozłożony na godziny i minuty,
+
+time_hour\<POSIXct\> - planowana data i godzina lotu jako POSIXct data.
+
+### Zadanie 2
+
+```{r}
+# opóźnienie co najmniej 2h
+flights |> filter(arr_delay >= 120)
+```
+
+```{r}
+# do Huston
+flights |> filter(dest == "IAH" | dest == "HOU") 
+```
+
+```{r}
+# linia United, American lub Delta
+flights |> filter(carrier == "UA" | carrier == "AA" | carrier == "DL") 
+```
+
+```{r}
+# loty od lipca do września
+flights |> filter(month >= 7 & month <= 9) 
+```
+
+```{r}
+# opóźnienie co najmniej 2h, ale bez opóźnienia odlotu
+flights |> filter(dep_delay <= 0) |> filter(arr_delay >= 120) 
+```
+
+```{r}
+# loty posortowane malejąco po opóźnieniu odlotu
+flights |> arrange(desc(dep_delay))
+```
+
+```{r}
+# loty posortowane po godzinie odlotu
+flights |> arrange(dep_time)
+```
+
+### Zadanie 3
+
+Tabela posortowana rosnąco po czasie połączenia.
+
+```{r}
+flights |> arrange(dep_delay + arr_delay + air_time)
+```
+
+### Zadanie 4
+
+Czy każdego dnia 2013 odbył się co najmniej jeden lot?
+
+```{r}
+flights |> filter(year == 2013) |> distinct(day, month) |> nrow()
+```
+
+Tak, każdego dnia odbył się co najmniej jeden lot, ponieważ dni, w których odbył się przynajmniej jeden lot jest 365, a rok 2013 nie był rokiem przestępnym.
+
+### Zadanie 5
+
+Które loty pokonały największy dystans a które najkrótszy (top i bottom 10)?
+
+```{r}
+flights |> arrange(desc(distance)) |> slice_head(n=10) # top 10
+```
+
+```{r}
+flights |> arrange(distance) |> slice_head(n=10) # bottom 10
+```
+
+### Zadanie 6
+
+Tak, kolejność używania tych funkcji ma znaczenie. Wyniki w obu przypadkach będą takie same, ale w przypadku użycia najpierw filter(), a potem arrange() zużyjemy mniej zasobów. Dzieje się tak dlatego, że filter() odrzuca nam część wyników niepasujących do naszych warunków, przez co potem arrange() pracuje na mniejszej ilości danych. W odwrotnym przypadku obie funkcje działają na całym dataframie.

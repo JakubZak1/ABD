@@ -1,0 +1,113 @@
+---
+title: "lab8"
+author: "jakub zak"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+patients <- read_tsv("patient-data-cleaned.txt")
+print(patients)
+```
+
+## Wykresy punktowe (scatterplot)
+
+```{r}
+plot <- ggplot(patients, aes(Weight, BMI)) + 
+        geom_point(aes(colour = Height))  + 
+        geom_smooth(method = lm, se = FALSE)
+  
+print(plot)
+```
+
+## Wykresy pudełkowe
+
+```{r}
+plot <- ggplot(patients, aes(Smokes, Score)) +
+        geom_boxplot(aes(color = Sex))
+
+print(plot)
+```
+
+## Histogramy i estymatory jądrowe
+
+```{r}
+plot <- ggplot(patients, aes(BMI)) +
+        geom_histogram(colour = "blue", binwidth = 0.7) +
+        labs(y = "Number of individuals")
+
+print(plot)
+
+plot <- ggplot(patients, aes(BMI)) +
+        geom_density() +
+        labs(y = "Number of individuals")
+
+print(plot)
+
+plot <- ggplot(patients, aes(BMI)) +
+        geom_histogram(colour = "blue", binwidth = 0.7, alpha = 0.2) +
+        geom_density(aes(colour = Sex, y = after_stat(count))) +
+        labs(y = "Percent of individuals")
+
+print(plot)
+```
+
+## Kafelki
+
+```{r}
+plot <- ggplot(patients, aes(Weight, BMI)) + 
+        geom_point(aes(color = Height)) +
+        facet_grid(Sex ~ Smokes)
+
+print(plot)
+
+plot <- ggplot(patients, aes(Smokes, BMI)) + 
+        geom_boxplot(aes(colour = Sex)) +
+        facet_grid(~Age)
+
+print(plot)
+
+plot <- ggplot(patients, aes(Sex, BMI)) +
+        geom_boxplot(aes(colour = factor(Age)))+
+        facet_grid(~Smokes)
+
+print(plot)
+```
+
+## Skale
+
+```{r}
+plot <- ggplot(patients, aes(Weight, BMI)) +
+        geom_point() +
+        scale_y_continuous(limits = c(20, 40), breaks = c(20, 30, 40)) +
+        scale_x_continuous(limits = c(60, 100), breaks = seq(60, 100, 5)) +
+        labs(x = "Waga [kg]")
+
+
+print(plot)
+
+plot <- ggplot(patients, aes(Weight, BMI)) + 
+        geom_point(aes(colour = Height)) +
+        scale_colour_gradient2(midpoint = mean(patients$Height), low = "darkgreen", mid = "grey", high = "darkred")
+
+print(plot)
+```
+
+## Motywy
+
+```{r}
+plot <- ggplot(patients, aes(Weight, BMI)) + 
+        geom_point(aes(colour = Height))  + 
+        geom_smooth(method = lm, se = FALSE, aes(group = Age)) +
+        labs(color = "", title = "Wykres zależności BMI od wagi i wzrostu") +
+        theme(legend.key = element_rect(fill = "white"),
+              legend.position = "bottom",
+              plot.title = element_text(hjust = 0.5),
+              panel.grid.minor = element_blank())
+
+ggsave("plot.png", plot, width = 16, height = 16, units = "cm")
+print(plot)
+```
+
+## 

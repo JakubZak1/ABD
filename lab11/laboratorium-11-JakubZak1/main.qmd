@@ -1,0 +1,199 @@
+---
+title: "Data Appendix"
+author: "Jakub Żak"
+format: html
+editor: visual
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+```
+
+```{r}
+data_df <- read.csv("beauty.csv")
+```
+
+```{r}
+data_tidy <- data_df %>%
+   rowwise() %>%
+  mutate(data_class = ifelse(
+    any(c_across(starts_with("class")) == 1),
+    as.integer(sub("^class", "", names(select(., starts_with("class")))[
+      c_across(starts_with("class")) == 1])),
+    NA_integer_)) %>%
+  select(-starts_with("class")) %>%
+  filter(!is.na(data_class)) %>%
+
+print(data_tidy)
+```
+
+## Zadanie 2
+
+```{r}
+ggplot(data_tidy, aes(x = courseevaluation, y = profevaluation)) +
+  geom_point(aes(color = factor(female))) +
+  labs(title = "Zależność oceny profesora od oceny kursu", x = "Ocena kursu", y = "Ocena profesora", colour = "Płeć (0 - mężczyzna, 1 - kobieta)")
+```
+
+```{r}
+ggplot(data_tidy, aes(x = courseevaluation, y = profevaluation)) +
+  geom_point(aes(color = factor(tenured))) +
+  labs(title = "Zależność oceny profesora od oceny kursu", x = "Ocena kursu", y = "Ocena profesora", colour = "Doświadczenie (0 - nie, 1 - tak)")
+```
+
+```{r}
+ggplot(data_tidy, aes(x = courseevaluation, y = profevaluation)) +
+  geom_point(aes(color = factor(minority))) +
+  labs(title = "Zależność oceny profesora od oceny kursu", x = "Ocena kursu", y = "Ocena profesora", colour = "Mniejszość (0 - nie, 1 - tak)")
+```
+
+Wygląda na to, że tendencja jest taka sama niezależnie od płci, doświadczenia i należenia do mniejszości etnicznych.
+
+## Zadanie 3
+
+```{r}
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautymlowerdiv)) +
+  geom_boxplot(aes(x = 2, y = beautymupperdiv)) +
+  geom_boxplot(aes(x = 3, y = beautym2upper)) +
+  labs(title = "Porównanie ocen beautymlowerdiv, beautymupperdiv i beautym2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymlowerdiv", "beautymupperdiv", "beautym2upper"))
+
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautyflowerdiv)) +
+  geom_boxplot(aes(x = 2, y = beautyfupperdiv)) +
+  geom_boxplot(aes(x = 3, y = beautyf2upper)) +
+  labs(title = "Porównanie ocen beautyflowerdiv, beautyfupperdiv i beautyf2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymflowerdiv", "beautyfupperdiv", "beautyf2upper"))
+```
+
+Z powyższych wykresów wynika, że kobiety średnio oceniają profesorów wyżej
+
+```{r}
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautymlowerdiv, colour = factor(female))) +
+  geom_boxplot(aes(x = 2, y = beautymupperdiv, colour = factor(female))) +
+  geom_boxplot(aes(x = 3, y = beautym2upper, colour = factor(female))) +
+  labs(title = "Porównanie ocen beautymlowerdiv, beautymupperdiv i beautym2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymlowerdiv", "beautymupperdiv", "beautym2upper"))
+
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautyflowerdiv, colour = factor(female))) +
+  geom_boxplot(aes(x = 2, y = beautyfupperdiv, colour = factor(female))) +
+  geom_boxplot(aes(x = 3, y = beautyf2upper, colour = factor(female))) +
+  labs(title = "Porównanie ocen beautyflowerdiv, beautyfupperdiv i beautyf2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymflowerdiv", "beautyfupperdiv", "beautyf2upper"))
+
+```
+
+U kobiet jest średnio większy "rozstrzał" ocen niż u mężczyzn. Kobiety też średnio wyżej oceniają profesorów kobiet.
+
+```{r}
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautymlowerdiv, colour = factor(tenured))) +
+  geom_boxplot(aes(x = 2, y = beautymupperdiv, colour = factor(tenured))) +
+  geom_boxplot(aes(x = 3, y = beautym2upper, colour = factor(tenured))) +
+  labs(title = "Porównanie ocen beautymlowerdiv, beautymupperdiv i beautym2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymlowerdiv", "beautymupperdiv", "beautym2upper"))
+
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautyflowerdiv, colour = factor(tenured))) +
+  geom_boxplot(aes(x = 2, y = beautyfupperdiv, colour = factor(tenured))) +
+  geom_boxplot(aes(x = 3, y = beautyf2upper, colour = factor(tenured))) +
+  labs(title = "Porównanie ocen beautyflowerdiv, beautyfupperdiv i beautyf2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymflowerdiv", "beautyfupperdiv", "beautyf2upper"))
+```
+
+W tym przypadku nie potrafię wywnioskować nic, oprócz tego, że kobiety oceniają profesorów wyżej
+
+```{r}
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautymlowerdiv, colour = factor(minority))) +
+  geom_boxplot(aes(x = 2, y = beautymupperdiv, colour = factor(minority))) +
+  geom_boxplot(aes(x = 3, y = beautym2upper, colour = factor(minority))) +
+  labs(title = "Porównanie ocen beautymlowerdiv, beautymupperdiv i beautym2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymlowerdiv", "beautymupperdiv", "beautym2upper"))
+
+ggplot(data_tidy) +
+  geom_boxplot(aes(x = 1, y = beautyflowerdiv, colour = factor(minority))) +
+  geom_boxplot(aes(x = 2, y = beautyfupperdiv, colour = factor(minority))) +
+  geom_boxplot(aes(x = 3, y = beautyf2upper, colour = factor(minority))) +
+  labs(title = "Porównanie ocen beautyflowerdiv, beautyfupperdiv i beautyf2upper w zależności od płci profesora",
+       x = "",
+       y = "Ocena") +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("beautymflowerdiv", "beautyfupperdiv", "beautyf2upper"))
+```
+
+Tutaj też wygląda na to, że kobiety oceniają wszystkich profesorów wyżej niż mężczyźni.
+
+## Zadanie 4
+
+```{r}
+ggplot(data_tidy, aes(x = age, y = beautyfupperdiv)) +
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE)
+
+ggplot(data_tidy, aes(x = age, y = beautymupperdiv)) +
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE)
+```
+
+Im wyższy wiek profesora, tym niższa jego średnia ocena wyglądu (przynajmniej dla tej grupy oceniających)
+
+## Zadanie 5
+
+```{r}
+ggplot(data_tidy, aes(x = age, y = profevaluation)) +
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE)
+```
+
+Wygląda na to, że średnio ocena profesora rośnie z jego wiekiem, ale nie jest to duża różnica
+
+```{r}
+ggplot(data_tidy, aes(x = age, y = courseevaluation)) +
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE)
+```
+
+Taki sam wniosek można wyciągnąć na temat kursu profesora.
+
+## Zadanie 6
+
+```{r}
+ggplot(data_tidy, aes(x = beautyfupperdiv, y = courseevaluation)) +
+  geom_point() + 
+  facet_grid(~female) +
+  geom_smooth(method = lm, se = FALSE)
+
+ggplot(data_tidy, aes(x = beautymupperdiv, y = courseevaluation)) +
+  geom_point() + 
+  facet_grid(~female) +
+  geom_smooth(method = lm, se = FALSE)
+```
+
+Widać, że ładny wygląd profesora ma pozytywny wpływ na ocenę jego kursy. Efekt ten jest wyraźniejszy dla profesorów płci męskiej.

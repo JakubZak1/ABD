@@ -1,0 +1,206 @@
+---
+title: "sprawozdanie"
+output: html_document
+date: "2024-01-16"
+---
+
+# Formaty danych i apache arrow
+
+```{r}
+# install.packages("arrow")
+# install.packages("xml2")
+# install.packages("haven")
+# install.packages("jsonlite")
+library(jsonlite) #dla plików .json
+library(haven) #dla plików .sav
+library(xml2) #dla plików .xml i .xsd
+library(arrow)
+library(dplyr)
+
+```
+
+## Zadanie 1: plik JSON
+
+1.  Pobierz z serwisu Kaggle plik: <https://www.kaggle.com/datasets/rtatman/iris-dataset-json-version>
+2.  Zapoznaj się z plikiem otwierając go w notatniku
+3.  Wczytaj go (*fromJSON()*) i wyświetl parę pierwszych wierszy
+
+```{r}
+iris <- fromJSON("iris.json")
+head(iris)
+```
+
+## Zadanie 2: .sav - pliki oprogramowania SPSS
+
+1.  Wczytaj i wyświetl pierwsze wiersze pliku *health_control.sav*
+
+```{r}
+health_control <- read_sav("health_control.sav")
+head(health_control)
+```
+
+## Zadanie 3: .csv .txt
+
+1.  Wczytaj plik *example.txt (read.csv()).* Sprawdź jaki separator jest wykorzystywany w pliku. Ustaw parametr *na.strings.*
+2.  Zapisz wczytane dane to pliku csv
+
+```{r}
+example <- read.csv("example.txt", na.strings = "")
+write.csv(example, file = "example_zapisany1")
+```
+
+3.  Pojawiający się błąd wynika to z faktu że dane zostały zapisane z kolumną z numerami wierszy, jednak bez jej nazwy. W celu naprawy błędnu można na przykład ręcznie dodać nazwę kolumny edytując plik w notatniku, a następnie wczytać go z parametrem *row.names = 1.*
+4.  Zapisz wczytany plik do formatu csv, pomijając indeksy wierszy (*write.csv(), ustaw row.names = FALSE*)
+5.  Obejrzyj zapisany plik w notatniku
+
+```{r}
+write.csv(example, file = "example_zapisany2", row.names = FALSE)
+```
+
+## Zadanie 4: Pliki XML
+
+XML to format danych oparty o znacznikil. Pliki tego typu można otworzyć np. notatnikim, w celu ręcznego przejrzenia pliku, gdyż dane zapisane są w formacie czytelnym dla ludzi.
+
+1.  Korzystając z pakietu xml2 otwórz plik *cd_catalog.xml (xml_read())*
+2.  Wypisz wszystkie tytuły filmów znajdujące się w pliku *(xml_find_all(data, "znacznik/znacznik_wewnatrz_znacznika/..."), xml_text())*
+3.  Oblicz ile płyt znajduje się w pliku
+4.  Oblicz sumę cen wszystkich płyt (*as.numeric()*)
+
+```{r}
+cd_catalog <- read_xml("cd_catalog.xml")
+
+tytuly <- xml_text(xml_find_all(cd_catalog, "//TITLE"))
+cat("Tytuły filmów:\n", tytuly, "\n\n")
+
+ilosc_plyt <- length(xml_find_all(cd_catalog, "//CD"))
+cat("Liczba płyt (CD):", ilosc_plyt, "\n\n")
+
+ceny <- xml_text(xml_find_all(cd_catalog, "//PRICE"))
+suma_cen <- sum(as.numeric(ceny), na.rm = TRUE)
+cat("Suma cen wszystkich płyt:", suma_cen, "\n")
+```
+
+## Zadanie 5: Plik XML i weryfikowanie szablonem XSD
+
+Często podczas pracy z plikami XML zachodzi poprawność zweryfikowania czy spełnia on wymagania strukturalne i semantyczne. Przydatne jest to na przykład gdy towrzymy funkcję operującą na plikach z różnych źródeł i nie chcemy aby niepoprawne pliki spowodowały błędy. Służą do tego pliki XSD
+
+1.  Korzystając z funkcji xml_validate*()* spawdź czy plik books.xml jest zgodny z schematem
+2.  Jeśeli występują jakieś problemy, otwórz plik xml (na przykład w notatniku) i dokonaj stosownych poprawek (jeżeli dodajesz jakieś dane, możesz wybrać dowolne wartości). Następnie przeprowadź walidację raz jeszcze.
+
+```{r}
+books <- read_xml("books.xml")
+schemat <- read_xml("books.xsd")
+validation <- xml_validate(books, schemat)
+print(validation)
+```
+
+## Zadanie 6: Apache arrow vs in memory
+
+Link do pobrania pliku do zadania (ok. 100MB)
+
+<https://aghedupl-my.sharepoint.com/:u:/g/personal/bargaw_agh_edu_pl/EW4FURQwm5tDgfLARz1g_lkBEnLRR82DgZuGFS4qeyuLWw?e=hxxQam>
+
+Zadanie ma na celu porównanie przetwarzania danych w różnych formatach przy użyciu różnych metod:
+
+1.  Wczytaj dane z pliku *organizations-1000000.csv* przy pomocy funkcji *read.csv()*
+2.  Wczytaj dane z pliku *organizations-1000000.csv* przy pomocy funkcji *open_dataset()*
+3.  Zapisz plik csv w formacie *.parquet. W tym celu użyj funkcji* *write\_*dataset*()*. Jako *dataset* podaj obiekt z wczytanym plikiem csv z punktu 2. Jako *path* ścieżkę gdzie plik ma być zapisany, a fomat ustaw jako *"parquet"*
+4.  Wczytaj plik utworzony w poprzednim punkcie (*open_dataset()*).
+5.  Sprawdź ile miejsca w pamięci zajmuje każdy z wczytanych obiektów. Zmierz czas jaki jest potrzebny na każdy rodzaj wczytania danych.
+6.  Porównaj ile miejsca na dysku zajmuje format csv, a ile parquet
+7.  Spawdź ile wierszy danych zawiera analizowany plik csv
+
+```{r}
+start_time_read_csv <- Sys.time()
+data_read_csv <- read.csv("organizations-1000000.csv")
+end_time_read_csv <- Sys.time()
+time_read_csv <- end_time_csv_read - start_time_csv_read
+
+start_time_open_dataset <- Sys.time()
+data_open_dataset <- open_csv_dataset("organizations-1000000.csv")
+end_time_open_dataset <- Sys.time()
+time_open_dataset <- end_time_open_dataset - start_time_open_dataset
+
+start_time_parquet <- Sys.time()
+write_dataset(data_open_dataset, path = "organizations.parquet", format = "parquet")
+end_time_parquet <- Sys.time()
+time_parquet <- end_time_parquet - start_time_parquet
+
+start_time_read <- Sys.time()
+data_read <- arrow::open_dataset("organizations.parquet")
+end_time_read <- Sys.time()
+time_read <- end_time_read - start_time_read
+
+memory_csv <- object.size(data_read_csv)
+memory_parquet <- object.size(data_open_dataset)
+memory_parquet_saved <- object.size(data_read)
+
+file_size_csv <- file.size("organizations-1000000.csv")
+file_size_parquet <- file.size("organizations.parquet/part-0.parquet")
+
+row_count_csv <- nrow(data_read_csv)
+
+cat("1. Czas wczytywania danych z pliku CSV przy użyciu read_csv():", time_read_csv, "\n")
+cat("2. Czas wczytywania danych z pliku przy użyciu open_dataset():", time_open_dataset, "\n")
+cat("3. Czas zapisywania danych do pliku Parquet:", time_parquet, "\n")
+cat("4. Czas wczytywania danych z zapisanego pliku Parquet:", time_read, "\n\n")
+
+cat("5. Miejsce w pamięci zajmowane przez obiekty:\n")
+cat("read_csv():", memory_csv, "bajtów\n")
+cat("open_dataset():", memory_parquet, "bajtów\n")
+cat("parquet:", memory_parquet_saved, "bajtów\n\n")
+
+cat("6. Rozmiar plików na dysku:\n")
+cat("CSV:", file_size_csv, "bajtów\n")
+cat("Parquet:", file_size_parquet, "bajtów\n\n")
+
+cat("7. Ilość wierszy w pliku CSV:", row_count_csv, "\n")
+
+```
+
+8.  Korzystając z pipe operator oblicz sumę danych z kolumny *Number_of_employees* dla każdego z 3 sposobów wczytywania danych. W przypadku plików otwartych z wykorzystaniem pakietu arrow najpierw należy wczytać dane: ... *select(col_name) %\>% collect() %\>% ...*
+9.  Zmierz czas wykonania tych obliczeń
+
+```{r}
+
+oblicz_sume <- function(data) {
+  data %>%
+    select(Number_of_employees) %>%
+    summarise(sum = sum(Number_of_employees, na.rm = TRUE)) %>%
+    collect() %>%
+    as.numeric()
+}
+
+start_time1 <- Sys.time()
+suma_csv <- oblicz_sume(data_read_csv)
+end_time1 <- Sys.time()
+time1 <- end_time1 - start_time1
+
+start_time2 <- Sys.time()
+suma_arrow <- oblicz_sume(data_open_dataset)
+end_time2 <- Sys.time()
+time2 <- end_time2 - start_time2
+
+start_time3 <- Sys.time()
+suma_arrow_saved <- oblicz_sume(data_read)
+end_time3 <- Sys.time()
+time3 <- end_time3 - start_time3
+
+cat("8. Suma danych z kolumny 'Number_of_employees':\n")
+cat("data_read_csv:", suma_csv, "\n")
+cat("data_open_dataset:", suma_arrow, "\n")
+cat("parquet:", suma_arrow_saved, "\n\n")
+
+cat("9. Czas wykonania obliczeń:\n")
+cat("data_read_csv:", time1, "\n")
+cat("data_open_dataset:", time2, "\n")
+cat("parquet:", time3, "\n")
+```
+
+### Materiały dodatkowe:
+
+Przykład wykorzystania Apache arrow do obsługi danych ważących 70GB: <https://arrow-user2022.netlify.app>
+
+<https://arrow.apache.org>
+
+<https://global.oup.com/us/companion.websites/9780190616397/resources/spss/>
